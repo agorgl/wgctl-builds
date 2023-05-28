@@ -1,0 +1,43 @@
+name: build
+on: workflow_dispatch
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+        with:
+          repository: agorgl/wgctl
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup clojure
+        run: |
+          export CLOJURE_VERSION=$(curl -s 'https://download.clojure.org/install/stable.properties' | awk '{ print $1 }')
+          curl -O https://download.clojure.org/install/linux-install-${CLOJURE_VERSION}.sh
+          chmod +x linux-install-${CLOJURE_VERSION}.sh
+          sudo ./linux-install-${CLOJURE_VERSION}.sh
+      - name: Setup graalvm
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: 'latest'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Print info
+        run: |
+          echo "JAVA_HOME: $JAVA_HOME"
+          echo "GRAALVM_HOME: $GRAALVM_HOME"
+          java --version
+          clojure --version
+          gu --version
+          native-image --version
+      - name: Build native image
+        run: clojure -T:build native
+      - name: Upload native image artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wgctl
+          path: target/net.clojars.agorgl/wgctl-0.1.0-SNAPSHOT
