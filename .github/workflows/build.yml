@@ -1,20 +1,24 @@
 name: build
 on: [workflow_dispatch, push]
+
 jobs:
   native:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
         with:
           repository: agorgl/wgctl
+
       - name: Setup java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
+
       - name: Setup clojure
         run: |
           CLOJURE_VERSION=$(curl -s 'https://download.clojure.org/install/stable.properties' | awk '{ print $1 }')
@@ -22,6 +26,7 @@ jobs:
           chmod +x linux-install-${CLOJURE_VERSION}.sh
           sudo ./linux-install-${CLOJURE_VERSION}.sh
           echo "CLOJURE_VERSION=$CLOJURE_VERSION" >> "$GITHUB_ENV"
+
       - name: Setup graalvm
         uses: graalvm/setup-graalvm@v1
         with:
@@ -29,6 +34,7 @@ jobs:
           java-version: '17'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Print info
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
@@ -38,6 +44,7 @@ jobs:
           clojure --version
           gu --version
           native-image --version
+
       - name: Build native image
         id: build
         run: |
@@ -46,15 +53,18 @@ jobs:
           NATIVE_OUTPUT=${JAR_OUTPUT%.jar}
           echo "JAR_OUTPUT=$JAR_OUTPUT" >> "$GITHUB_OUTPUT"
           echo "NATIVE_OUTPUT=$NATIVE_OUTPUT" >> "$GITHUB_OUTPUT"
+
       - name: Upload native image artifact
         uses: actions/upload-artifact@v3
         with:
           name: wgctl
           path: ${{ steps.build.outputs.NATIVE_OUTPUT }}
+
       - name: Create release
         run: gh release create latest -R $GITHUB_REPOSITORY -t latest --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload artifacts to release
         run: gh release upload latest -R $GITHUB_REPOSITORY ${{ steps.build.outputs.NATIVE_OUTPUT }}
         env:
