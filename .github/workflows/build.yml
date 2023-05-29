@@ -3,6 +3,8 @@ on: [workflow_dispatch, push]
 jobs:
   native:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
