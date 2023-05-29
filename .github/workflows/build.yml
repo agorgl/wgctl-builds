@@ -49,3 +49,9 @@ jobs:
         with:
           name: wgctl
           path: ${{ steps.build.outputs.NATIVE_OUTPUT }}
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: latest
+          files: |
+            ${{ steps.build.outputs.NATIVE_OUTPUT }}
