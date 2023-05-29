@@ -37,9 +37,15 @@ jobs:
           gu --version
           native-image --version
       - name: Build native image
-        run: clojure -T:build native
+        id: build
+        run: |
+          clojure -T:build native
+          JAR_OUTPUT=$(find target/ -iname *.jar)
+          NATIVE_OUTPUT=${JAR_OUTPUT%.jar}
+          echo "JAR_OUTPUT=$JAR_OUTPUT" >> "$GITHUB_OUTPUT"
+          echo "NATIVE_OUTPUT=$NATIVE_OUTPUT" >> "$GITHUB_OUTPUT"
       - name: Upload native image artifact
         uses: actions/upload-artifact@v3
         with:
           name: wgctl
-          path: target/net.clojars.agorgl/wgctl-0.1.0-SNAPSHOT
+          path: ${{ steps.build.outputs.NATIVE_OUTPUT }}
