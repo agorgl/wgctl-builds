@@ -51,5 +51,9 @@ jobs:
           path: ${{ steps.build.outputs.NATIVE_OUTPUT }}
       - name: Create release
         run: gh release create latest -t latest --generate-notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifacts to release
         run: gh release upload latest ${{ steps.build.outputs.NATIVE_OUTPUT }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
