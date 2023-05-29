@@ -15,10 +15,11 @@ jobs:
           java-version: '17'
       - name: Setup clojure
         run: |
-          export CLOJURE_VERSION=$(curl -s 'https://download.clojure.org/install/stable.properties' | awk '{ print $1 }')
+          CLOJURE_VERSION=$(curl -s 'https://download.clojure.org/install/stable.properties' | awk '{ print $1 }')
           curl -O https://download.clojure.org/install/linux-install-${CLOJURE_VERSION}.sh
           chmod +x linux-install-${CLOJURE_VERSION}.sh
           sudo ./linux-install-${CLOJURE_VERSION}.sh
+          echo "CLOJURE_VERSION=$CLOJURE_VERSION" >> "$GITHUB_ENV"
       - name: Setup graalvm
         uses: graalvm/setup-graalvm@v1
         with:
@@ -30,6 +31,7 @@ jobs:
         run: |
           echo "JAVA_HOME: $JAVA_HOME"
           echo "GRAALVM_HOME: $GRAALVM_HOME"
+          echo "CLOJURE_VERSION: ${{ env.CLOJURE_VERSION }}"
           java --version
           clojure --version
           gu --version
