@@ -60,12 +60,26 @@ jobs:
           name: wgctl
           path: ${{ steps.build.outputs.NATIVE_OUTPUT }}
 
+      - name: Setup release
+        id: setup-release
+        run: |
+          RELEASE=latest
+          echo "RELEASE=$RELEASE" >> "$GITHUB_OUTPUT"
+
       - name: Create release
-        run: gh release create latest -R $GITHUB_REPOSITORY -t latest --generate-notes
+        run: |
+          RELEASE=${{ steps.setup-release.outputs.RELEASE }}
+          gh release view -R $GITHUB_REPOSITORY $RELEASE >> /dev/null
+          if [ $? -eq 0 ]; then
+            gh release delete -R $GITHUB_REPOSITORY $RELEASE --cleanup-tag -y
+          fi
+          gh release create -R $GITHUB_REPOSITORY $RELEASE -t $RELEASE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts to release
-        run: gh release upload latest -R $GITHUB_REPOSITORY ${{ steps.build.outputs.NATIVE_OUTPUT }}
+        run: |
+          RELEASE=${{ steps.setup-release.outputs.RELEASE }}
+          gh release upload -R $GITHUB_REPOSITORY $RELEASE ${{ steps.build.outputs.NATIVE_OUTPUT }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
