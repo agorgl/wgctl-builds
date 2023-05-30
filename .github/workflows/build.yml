@@ -69,10 +69,7 @@ jobs:
       - name: Create release
         run: |
           RELEASE=${{ steps.setup-release.outputs.RELEASE }}
-          gh release view -R $GITHUB_REPOSITORY $RELEASE >> /dev/null
-          if [ $? -eq 0 ]; then
-            gh release delete -R $GITHUB_REPOSITORY $RELEASE --cleanup-tag -y
-          fi
+          gh release delete -R $GITHUB_REPOSITORY $RELEASE --cleanup-tag --yes || true
           gh release create -R $GITHUB_REPOSITORY $RELEASE -t $RELEASE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
