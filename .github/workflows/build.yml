@@ -70,6 +70,7 @@ jobs:
         run: |
           RELEASE=${{ steps.setup-release.outputs.RELEASE }}
           gh release delete -R $GITHUB_REPOSITORY $RELEASE --cleanup-tag --yes || true
+          sleep 5
           gh release create -R $GITHUB_REPOSITORY $RELEASE -t $RELEASE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
