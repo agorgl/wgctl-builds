@@ -53,14 +53,22 @@ jobs:
           gu --version
           native-image --version
 
+      - name: Release name
+        id: release-name
+        run: |
+          RELEASE=latest
+          echo "RELEASE=$RELEASE" >> "$GITHUB_OUTPUT"
+
       - name: Build native image
         id: build
         run: |
+          mkdir dist
           clojure -T:build native
           JAR_OUTPUT=$(find target/ -iname *.jar)
           NATIVE_OUTPUT=${JAR_OUTPUT%.jar}
-          mkdir dist
-          cp $NATIVE_OUTPUT dist/$(basename $NATIVE_OUTPUT | sed -r 's/-([0-9]+\.[0-9]+\.[0-9]).*$//')-${{ matrix.target }}-${{ matrix.arch }}
+          OUTPUT_NAME=$(basename $NATIVE_OUTPUT | sed -r 's/-([0-9]+\.[0-9]+\.[0-9]).*$//')
+          RELEASE=${{ steps.release-name.outputs.RELEASE }}
+          cp $NATIVE_OUTPUT dist/${OUTPUT_NAME}-${RELEASE}-${{ matrix.target }}-${{ matrix.arch }}
 
       - name: Upload native image artifact
         uses: actions/upload-artifact@v3
@@ -68,15 +76,9 @@ jobs:
           name: wgctl
           path: dist/*
 
-      - name: Setup release
-        id: setup-release
-        run: |
-          RELEASE=latest
-          echo "RELEASE=$RELEASE" >> "$GITHUB_OUTPUT"
-
       - name: Create release
         run: |
-          RELEASE=${{ steps.setup-release.outputs.RELEASE }}
+          RELEASE=${{ steps.release-name.outputs.RELEASE }}
           gh release delete -R $GITHUB_REPOSITORY $RELEASE --cleanup-tag --yes || true
           sleep 5
           gh release create -R $GITHUB_REPOSITORY $RELEASE -t $RELEASE
@@ -85,7 +87,7 @@ jobs:
 
       - name: Upload artifacts to release
         run: |
-          RELEASE=${{ steps.setup-release.outputs.RELEASE }}
+          RELEASE=${{ steps.release-name.outputs.RELEASE }}
           gh release upload -R $GITHUB_REPOSITORY $RELEASE dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
