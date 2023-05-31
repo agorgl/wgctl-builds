@@ -69,11 +69,12 @@ jobs:
           OUTPUT_NAME=$(basename $NATIVE_OUTPUT | sed -r 's/-([0-9]+\.[0-9]+\.[0-9]).*$//')
           RELEASE=${{ steps.release-name.outputs.RELEASE }}
           cp $NATIVE_OUTPUT dist/${OUTPUT_NAME}-${RELEASE}-${{ matrix.target }}-${{ matrix.arch }}
+          echo "OUTPUT_NAME=$OUTPUT_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Upload native image artifact
         uses: actions/upload-artifact@v3
         with:
-          name: wgctl
+          name: ${{ steps.build.outputs.OUTPUT_NAME }}
           path: dist/*
 
       - name: Create release
